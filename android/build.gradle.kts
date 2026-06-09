@@ -20,15 +20,24 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Global project evaluation listener to inject namespace into plugins that lack it
+// Global project evaluation listener to fix common plugin issues (Namespace and JVM Target)
 gradle.addProjectEvaluationListener(object : ProjectEvaluationListener {
     override fun beforeEvaluate(project: Project) {}
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
         if (project != rootProject && project.name != "app") {
             try {
+                // 1. Force JVM Target 17 for both Java and Kotlin in Android extensions
                 val android = project.extensions.findByName("android")
                 if (android != null) {
+                    val compileOptions = android.javaClass.getMethod("getCompileOptions").invoke(android)
+                    val setSourceCompatibility = compileOptions.javaClass.getMethod("setSourceCompatibility", JavaVersion::class.java)
+                    val setTargetCompatibility = compileOptions.javaClass.getMethod("setTargetCompatibility", JavaVersion::class.java)
+                    
+                    setSourceCompatibility.invoke(compileOptions, JavaVersion.VERSION_17)
+                    setTargetCompatibility.invoke(compileOptions, JavaVersion.VERSION_17)
+                    
+                    // 2. Inject Namespace if missing
                     val getNamespace = android.javaClass.methods.find { it.name == "getNamespace" }
                     val setNamespace = android.javaClass.methods.find { it.name == "setNamespace" && it.parameterCount == 1 }
 
@@ -46,6 +55,16 @@ gradle.addProjectEvaluationListener(object : ProjectEvaluationListener {
                                 }
                             }
                         }
+                    }
+                }
+                
+                // 3. Force Kotlin JVM Target 17 across all Kotlin tasks using reflection to avoid import issues
+                project.tasks.matching { it.javaClass.name.contains("KotlinCompile") }.all {
+                    try {
+                        val kotlinOptions = this.javaClass.getMethod("getKotlinOptions").invoke(this)
+                        kotlinOptions.javaClass.getMethod("setJvmTarget", String::class.java).invoke(kotlinOptions, "17")
+                    } catch (e: Exception) {
+                        // ignore
                     }
                 }
             } catch (e: Exception) {
