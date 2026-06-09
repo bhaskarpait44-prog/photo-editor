@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../models/project_model.dart';
 
 class ProjectCard extends StatelessWidget {
@@ -43,7 +43,7 @@ class ProjectCard extends StatelessWidget {
                   : Container(
                       color: Theme.of(context).colorScheme.surface,
                       child: Icon(
-                        PhosphorIcons.image(PhosphorIconsStyle.regular),
+                        PhosphorIcons.image,
                         size: 48,
                         color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
                       ),
@@ -90,31 +90,31 @@ class ProjectCard extends StatelessWidget {
       items: [
         PopupMenuItem(
           onTap: onRename,
-          child: Row(
+          child: const Row(
             children: [
-              Icon(PhosphorIcons.pencilSimple(PhosphorIconsStyle.regular), size: 20),
-              const SizedBox(width: 12),
-              const Text('Rename'),
+              Icon(PhosphorIcons.pencilSimple, size: 20),
+              SizedBox(width: 12),
+              Text('Rename'),
             ],
           ),
         ),
         PopupMenuItem(
           onTap: onDuplicate,
-          child: Row(
+          child: const Row(
             children: [
-              Icon(PhosphorIcons.copy(PhosphorIconsStyle.regular), size: 20),
-              const SizedBox(width: 12),
-              const Text('Duplicate'),
+              Icon(PhosphorIcons.copy, size: 20),
+              SizedBox(width: 12),
+              Text('Duplicate'),
             ],
           ),
         ),
         PopupMenuItem(
           onTap: onDelete,
-          child: Row(
+          child: const Row(
             children: [
-              Icon(PhosphorIcons.trash(PhosphorIconsStyle.regular), size: 20, color: Colors.redAccent),
-              const SizedBox(width: 12),
-              const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+              Icon(PhosphorIcons.trash, size: 20, color: Colors.redAccent),
+              SizedBox(width: 12),
+              Text('Delete', style: TextStyle(color: Colors.redAccent)),
             ],
           ),
         ),

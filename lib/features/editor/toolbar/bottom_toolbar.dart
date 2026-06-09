@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../providers/editor_provider.dart';
 
 class BottomToolbar extends ConsumerWidget {
@@ -23,49 +23,49 @@ class BottomToolbar extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _ToolIcon(
-            icon: PhosphorIcons.slidersHorizontal(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.slidersHorizontal,
             label: 'Adjust',
             isSelected: activeTool == EditorTool.adjust,
             onTap: () => notifier.setActiveTool(EditorTool.adjust),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.magicWand(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.magicWand,
             label: 'Filters',
             isSelected: activeTool == EditorTool.filter,
             onTap: () => notifier.setActiveTool(EditorTool.filter),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.crop(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.crop,
             label: 'Crop',
             isSelected: activeTool == EditorTool.crop,
             onTap: () => notifier.setActiveTool(EditorTool.crop),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.stack(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.stack,
             label: 'Layers',
             isSelected: activeTool == EditorTool.layers,
             onTap: () => notifier.setActiveTool(EditorTool.layers),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.paintBrush(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.paintBrush,
             label: 'Brush',
             isSelected: activeTool == EditorTool.brush,
             onTap: () => notifier.setActiveTool(EditorTool.brush),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.textT(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.textT,
             label: 'Text',
             isSelected: activeTool == EditorTool.text,
             onTap: () => notifier.setActiveTool(EditorTool.text),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.bandaids(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.bandaids,
             label: 'Heal',
             isSelected: activeTool == EditorTool.heal,
             onTap: () => notifier.setActiveTool(EditorTool.heal),
           ),
           _ToolIcon(
-            icon: PhosphorIcons.arrowsOut(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.arrowsOut,
             label: 'Transform',
             isSelected: activeTool == EditorTool.transform,
             onTap: () => notifier.setActiveTool(EditorTool.transform),

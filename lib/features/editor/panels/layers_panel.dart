@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../models/layer_model.dart';
 import '../../../providers/layers_provider.dart';
 
@@ -21,7 +21,7 @@ class LayersPanel extends ConsumerWidget {
             children: [
               const Text('Layers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               IconButton(
-                icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.regular), color: Colors.white, size: 20),
+                icon: const Icon(PhosphorIcons.plus, color: Colors.white, size: 20),
                 onPressed: () {
                   // Add layer logic
                 },
@@ -122,7 +122,7 @@ class _LayerItem extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(
-                layer.isVisible ? PhosphorIcons.eye(PhosphorIconsStyle.regular) : PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular),
+                layer.isVisible ? PhosphorIcons.eye : PhosphorIcons.eyeSlash,
                 size: 18,
                 color: Colors.white38,
               ),
@@ -137,13 +137,13 @@ class _LayerItem extends StatelessWidget {
   IconData _getLayerIcon(LayerType type) {
     switch (type) {
       case LayerType.image:
-        return PhosphorIcons.image(PhosphorIconsStyle.regular);
+        return PhosphorIcons.image;
       case LayerType.adjustment:
-        return PhosphorIcons.slidersHorizontal(PhosphorIconsStyle.regular);
+        return PhosphorIcons.slidersHorizontal;
       case LayerType.text:
-        return PhosphorIcons.textT(PhosphorIconsStyle.regular);
+        return PhosphorIcons.textT;
       case LayerType.shape:
-        return PhosphorIcons.shapes(PhosphorIconsStyle.regular);
+        return PhosphorIcons.shapes;
     }
   }
 }

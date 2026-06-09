@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../providers/project_provider.dart';
 import '../widgets/project_card.dart';
 import '../../../models/project_model.dart';
@@ -19,7 +19,7 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('Pixel Forge'),
         actions: [
           IconButton(
-            icon: Icon(PhosphorIcons.gear(PhosphorIconsStyle.regular)),
+            icon: const Icon(PhosphorIcons.gear),
             onPressed: () {
               // Settings placeholder
             },
@@ -32,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    PhosphorIcons.image(PhosphorIconsStyle.regular),
+                    PhosphorIcons.image,
                     size: 64,
                     color: Theme.of(context).colorScheme.secondary,
                   ),
@@ -82,7 +82,7 @@ class HomeScreen extends ConsumerWidget {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _createNewProject(context, ref),
-        icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.regular)),
+        icon: const Icon(PhosphorIcons.plus),
         label: const Text('New Project'),
       ),
     );

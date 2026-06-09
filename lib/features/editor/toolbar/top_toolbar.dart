@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../providers/editor_provider.dart';
 
 class TopToolbar extends ConsumerWidget {
@@ -28,8 +28,8 @@ class TopToolbar extends ConsumerWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(
-              PhosphorIcons.caretLeft(PhosphorIconsStyle.regular),
+            icon: const Icon(
+              PhosphorIcons.caretLeft,
               size: 24,
             ),
             onPressed: () => Navigator.pop(context),
@@ -37,21 +37,21 @@ class TopToolbar extends ConsumerWidget {
           const Spacer(),
           IconButton(
             icon: Icon(
-              PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
+              PhosphorIcons.arrowCounterClockwise,
               color: notifier.canUndo ? Colors.white : Colors.white38,
             ),
             onPressed: notifier.canUndo ? notifier.undo : null,
           ),
           IconButton(
             icon: Icon(
-              PhosphorIcons.arrowClockwise(PhosphorIconsStyle.regular),
+              PhosphorIcons.arrowClockwise,
               color: notifier.canRedo ? Colors.white : Colors.white38,
             ),
             onPressed: notifier.canRedo ? notifier.redo : null,
           ),
           const SizedBox(width: 8),
           _ToolButton(
-            icon: PhosphorIcons.rows(PhosphorIconsStyle.regular),
+            icon: PhosphorIcons.rows,
             isSelected: editorState.isBeforeView,
             onPressed: () => notifier.setBeforeView(!editorState.isBeforeView),
           ),
