@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/interaction_provider.dart';
 
-class CustomSlider extends StatelessWidget {
+class CustomSlider extends ConsumerWidget {
   final String label;
   final double value;
   final double min;
   final double max;
   final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChangeEnd;
   final VoidCallback onReset;
 
   const CustomSlider({
@@ -13,13 +16,14 @@ class CustomSlider extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.onChangeEnd,
     required this.onReset,
     this.min = -100.0,
     this.max = 100.0,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -49,7 +53,12 @@ class CustomSlider extends StatelessWidget {
             value: value,
             min: min,
             max: max,
+            onChangeStart: (_) => ref.read(isSliderInteractingProvider.notifier).state = true,
             onChanged: onChanged,
+            onChangeEnd: (val) {
+              ref.read(isSliderInteractingProvider.notifier).state = false;
+              if (onChangeEnd != null) onChangeEnd!(val);
+            },
           ),
         ),
       ],

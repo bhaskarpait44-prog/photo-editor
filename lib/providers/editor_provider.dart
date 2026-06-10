@@ -1,22 +1,20 @@
 import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/adjustment_model.dart';
 
-enum EditorTool {
-  none,
-  adjust,
-  filter,
-  crop,
-  layers,
-  brush,
-  text,
-  heal,
-  transform
+enum EditorTool { none, adjust, filter, crop, layers, brush, text, heal, transform }
+
+// Command pattern — each history entry stores adjustment state, NOT bitmap
+class HistoryEntry {
+  final AdjustmentModel adjustments;
+  final String description;
+  HistoryEntry({required this.adjustments, required this.description});
 }
 
 class EditorState {
   final ui.Image? image;
   final EditorTool activeTool;
-  final List<ui.Image> history;
+  final List<HistoryEntry> history;
   final int historyIndex;
   final bool isBeforeView;
 
@@ -31,7 +29,7 @@ class EditorState {
   EditorState copyWith({
     ui.Image? image,
     EditorTool? activeTool,
-    List<ui.Image>? history,
+    List<HistoryEntry>? history,
     int? historyIndex,
     bool? isBeforeView,
   }) {
@@ -53,61 +51,43 @@ class EditorNotifier extends StateNotifier<EditorState> {
   EditorNotifier() : super(EditorState());
 
   void setImage(ui.Image image) {
-    state = state.copyWith(
-      image: image,
-      history: [image],
-      historyIndex: 0,
-    );
+    state = state.copyWith(image: image, history: [], historyIndex: -1);
   }
 
   void setActiveTool(EditorTool tool) {
-    if (state.activeTool == tool) {
-      state = state.copyWith(activeTool: EditorTool.none);
-    } else {
-      state = state.copyWith(activeTool: tool);
-    }
+    state = state.copyWith(activeTool: state.activeTool == tool ? EditorTool.none : tool);
   }
 
-  void setBeforeView(bool value) {
-    state = state.copyWith(isBeforeView: value);
-  }
+  void setBeforeView(bool value) => state = state.copyWith(isBeforeView: value);
 
-  void pushHistory(ui.Image newImage) {
+  // Call this AFTER the user finishes a slider drag (onChangeEnd), not during
+  void pushHistory(AdjustmentModel adjustments, {String description = 'Edit'}) {
     final newHistory = state.history.sublist(0, state.historyIndex + 1);
-    newHistory.add(newImage);
-    
-    // Limit history to 30 steps
-    if (newHistory.length > 30) {
-      newHistory.removeAt(0);
-    }
-
-    state = state.copyWith(
-      image: newImage,
-      history: newHistory,
-      historyIndex: newHistory.length - 1,
-    );
+    newHistory.add(HistoryEntry(adjustments: adjustments, description: description));
+    if (newHistory.length > 50) newHistory.removeAt(0);
+    state = state.copyWith(history: newHistory, historyIndex: newHistory.length - 1);
   }
 
-  void undo() {
+  void undo(void Function(AdjustmentModel) onRestore) {
     if (state.historyIndex > 0) {
       final newIndex = state.historyIndex - 1;
-      state = state.copyWith(
-        image: state.history[newIndex],
-        historyIndex: newIndex,
-      );
+      state = state.copyWith(historyIndex: newIndex);
+      onRestore(state.history[newIndex].adjustments);
+    } else if (state.historyIndex == 0) {
+      const newIndex = -1;
+      state = state.copyWith(historyIndex: newIndex);
+      onRestore(const AdjustmentModel());
     }
   }
 
-  void redo() {
+  void redo(void Function(AdjustmentModel) onRestore) {
     if (state.historyIndex < state.history.length - 1) {
       final newIndex = state.historyIndex + 1;
-      state = state.copyWith(
-        image: state.history[newIndex],
-        historyIndex: newIndex,
-      );
+      state = state.copyWith(historyIndex: newIndex);
+      onRestore(state.history[newIndex].adjustments);
     }
   }
 
-  bool get canUndo => state.historyIndex > 0;
+  bool get canUndo => state.historyIndex >= 0;
   bool get canRedo => state.historyIndex < state.history.length - 1;
 }

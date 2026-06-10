@@ -12,6 +12,9 @@ class ShaderService {
     await Future.wait([
       _loadShader('brightness_contrast', 'shaders/brightness_contrast.frag'),
       _loadShader('hsl_adjust', 'shaders/hsl_adjust.frag'),
+      _loadShader('exposure_shadows_highlights', 'shaders/exposure_shadows_highlights.frag'),
+      _loadShader('temperature_tint', 'shaders/temperature_tint.frag'),
+      _loadShader('detail_effects', 'shaders/detail_effects.frag'),
     ]);
   }
 

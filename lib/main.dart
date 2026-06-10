@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'models/project_model.dart';
+import 'models/layer_hive_model.dart';
 import 'providers/project_provider.dart';
 import 'services/shader_service.dart';
 
@@ -19,6 +20,7 @@ void main() async {
   
   // Register Adapters
   Hive.registerAdapter(ProjectModelAdapter());
+  Hive.registerAdapter(LayerHiveModelAdapter());
 
   // Initialize Services
   final container = ProviderContainer();

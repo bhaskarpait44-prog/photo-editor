@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../providers/editor_provider.dart';
+import '../../../providers/adjustments_provider.dart';
 
 class TopToolbar extends ConsumerWidget {
   final VoidCallback onSave;
@@ -40,14 +41,18 @@ class TopToolbar extends ConsumerWidget {
               PhosphorIcons.arrowCounterClockwise,
               color: notifier.canUndo ? Colors.white : Colors.white38,
             ),
-            onPressed: notifier.canUndo ? notifier.undo : null,
+            onPressed: notifier.canUndo 
+                ? () => notifier.undo((adj) => ref.read(adjustmentsProvider.notifier).state = adj) 
+                : null,
           ),
           IconButton(
             icon: Icon(
               PhosphorIcons.arrowClockwise,
               color: notifier.canRedo ? Colors.white : Colors.white38,
             ),
-            onPressed: notifier.canRedo ? notifier.redo : null,
+            onPressed: notifier.canRedo 
+                ? () => notifier.redo((adj) => ref.read(adjustmentsProvider.notifier).state = adj) 
+                : null,
           ),
           const SizedBox(width: 8),
           _ToolButton(
