@@ -29,6 +29,8 @@ mixin _$LayerModel {
   double get offsetY => throw _privateConstructorUsedError;
   double get scale => throw _privateConstructorUsedError;
   double get rotation => throw _privateConstructorUsedError;
+  bool get isFlippedH => throw _privateConstructorUsedError;
+  bool get isFlippedV => throw _privateConstructorUsedError;
   TextSettingsModel? get textSettings => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -56,6 +58,8 @@ abstract class $LayerModelCopyWith<$Res> {
       double offsetY,
       double scale,
       double rotation,
+      bool isFlippedH,
+      bool isFlippedV,
       TextSettingsModel? textSettings});
 
   $TextSettingsModelCopyWith<$Res>? get textSettings;
@@ -87,6 +91,8 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
     Object? offsetY = null,
     Object? scale = null,
     Object? rotation = null,
+    Object? isFlippedH = null,
+    Object? isFlippedV = null,
     Object? textSettings = freezed,
   }) {
     return _then(_value.copyWith(
@@ -142,6 +148,14 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
           ? _value.rotation
           : rotation // ignore: cast_nullable_to_non_nullable
               as double,
+      isFlippedH: null == isFlippedH
+          ? _value.isFlippedH
+          : isFlippedH // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isFlippedV: null == isFlippedV
+          ? _value.isFlippedV
+          : isFlippedV // ignore: cast_nullable_to_non_nullable
+              as bool,
       textSettings: freezed == textSettings
           ? _value.textSettings
           : textSettings // ignore: cast_nullable_to_non_nullable
@@ -184,6 +198,8 @@ abstract class _$$LayerModelImplCopyWith<$Res>
       double offsetY,
       double scale,
       double rotation,
+      bool isFlippedH,
+      bool isFlippedV,
       TextSettingsModel? textSettings});
 
   @override
@@ -214,6 +230,8 @@ class __$$LayerModelImplCopyWithImpl<$Res>
     Object? offsetY = null,
     Object? scale = null,
     Object? rotation = null,
+    Object? isFlippedH = null,
+    Object? isFlippedV = null,
     Object? textSettings = freezed,
   }) {
     return _then(_$LayerModelImpl(
@@ -269,6 +287,14 @@ class __$$LayerModelImplCopyWithImpl<$Res>
           ? _value.rotation
           : rotation // ignore: cast_nullable_to_non_nullable
               as double,
+      isFlippedH: null == isFlippedH
+          ? _value.isFlippedH
+          : isFlippedH // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isFlippedV: null == isFlippedV
+          ? _value.isFlippedV
+          : isFlippedV // ignore: cast_nullable_to_non_nullable
+              as bool,
       textSettings: freezed == textSettings
           ? _value.textSettings
           : textSettings // ignore: cast_nullable_to_non_nullable
@@ -294,6 +320,8 @@ class _$LayerModelImpl implements _LayerModel {
       this.offsetY = 0.0,
       this.scale = 1.0,
       this.rotation = 0.0,
+      this.isFlippedH = false,
+      this.isFlippedV = false,
       this.textSettings});
 
   @override
@@ -331,11 +359,17 @@ class _$LayerModelImpl implements _LayerModel {
   @JsonKey()
   final double rotation;
   @override
+  @JsonKey()
+  final bool isFlippedH;
+  @override
+  @JsonKey()
+  final bool isFlippedV;
+  @override
   final TextSettingsModel? textSettings;
 
   @override
   String toString() {
-    return 'LayerModel(id: $id, name: $name, type: $type, imagePath: $imagePath, maskPath: $maskPath, opacity: $opacity, isVisible: $isVisible, isLocked: $isLocked, blendMode: $blendMode, offsetX: $offsetX, offsetY: $offsetY, scale: $scale, rotation: $rotation, textSettings: $textSettings)';
+    return 'LayerModel(id: $id, name: $name, type: $type, imagePath: $imagePath, maskPath: $maskPath, opacity: $opacity, isVisible: $isVisible, isLocked: $isLocked, blendMode: $blendMode, offsetX: $offsetX, offsetY: $offsetY, scale: $scale, rotation: $rotation, isFlippedH: $isFlippedH, isFlippedV: $isFlippedV, textSettings: $textSettings)';
   }
 
   @override
@@ -362,6 +396,10 @@ class _$LayerModelImpl implements _LayerModel {
             (identical(other.scale, scale) || other.scale == scale) &&
             (identical(other.rotation, rotation) ||
                 other.rotation == rotation) &&
+            (identical(other.isFlippedH, isFlippedH) ||
+                other.isFlippedH == isFlippedH) &&
+            (identical(other.isFlippedV, isFlippedV) ||
+                other.isFlippedV == isFlippedV) &&
             (identical(other.textSettings, textSettings) ||
                 other.textSettings == textSettings));
   }
@@ -382,6 +420,8 @@ class _$LayerModelImpl implements _LayerModel {
       offsetY,
       scale,
       rotation,
+      isFlippedH,
+      isFlippedV,
       textSettings);
 
   @JsonKey(ignore: true)
@@ -406,6 +446,8 @@ abstract class _LayerModel implements LayerModel {
       final double offsetY,
       final double scale,
       final double rotation,
+      final bool isFlippedH,
+      final bool isFlippedV,
       final TextSettingsModel? textSettings}) = _$LayerModelImpl;
 
   @override
@@ -434,6 +476,10 @@ abstract class _LayerModel implements LayerModel {
   double get scale;
   @override
   double get rotation;
+  @override
+  bool get isFlippedH;
+  @override
+  bool get isFlippedV;
   @override
   TextSettingsModel? get textSettings;
   @override

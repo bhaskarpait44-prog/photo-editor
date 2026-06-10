@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 
 class HistogramData {
   final Uint32List red;
@@ -15,31 +16,46 @@ class HistogramData {
   });
 }
 
+class _HistogramTask {
+  final Uint8List bytes;
+  final int width;
+  final int height;
+  _HistogramTask({required this.bytes, required this.width, required this.height});
+}
+
+HistogramData _computeHistogramIsolate(_HistogramTask task) {
+  final data = task.bytes;
+  final r = Uint32List(256);
+  final g = Uint32List(256);
+  final b = Uint32List(256);
+  final l = Uint32List(256);
+
+  for (int i = 0; i < data.length; i += 4) {
+    final red = data[i];
+    final green = data[i + 1];
+    final blue = data[i + 2];
+    
+    r[red]++;
+    g[green]++;
+    b[blue]++;
+    
+    final luma = (0.299 * red + 0.587 * green + 0.114 * blue).round().clamp(0, 255);
+    l[luma]++;
+  }
+
+  return HistogramData(red: r, green: g, blue: b, luminance: l);
+}
+
 class HistogramService {
   static Future<HistogramData> computeHistogram(ui.Image image) async {
     final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
     if (bytes == null) return _empty();
 
-    final data = bytes.buffer.asUint8List();
-    final r = Uint32List(256);
-    final g = Uint32List(256);
-    final b = Uint32List(256);
-    final l = Uint32List(256);
-
-    for (int i = 0; i < data.length; i += 4) {
-      final red = data[i];
-      final green = data[i + 1];
-      final blue = data[i + 2];
-      
-      r[red]++;
-      g[green]++;
-      b[blue]++;
-      
-      final luma = (0.299 * red + 0.587 * green + 0.114 * blue).round();
-      l[luma]++;
-    }
-
-    return HistogramData(red: r, green: g, blue: b, luminance: l);
+    return compute(_computeHistogramIsolate, _HistogramTask(
+      bytes: bytes.buffer.asUint8List(),
+      width: image.width,
+      height: image.height,
+    ));
   }
 
   static HistogramData _empty() {

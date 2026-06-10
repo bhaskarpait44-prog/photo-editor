@@ -86,7 +86,11 @@ class LayersPanel extends ConsumerWidget {
           child: ReorderableListView.builder(
             itemCount: layers.length,
             onReorder: (oldIndex, newIndex) {
-              ref.read(layersProvider.notifier).reorderLayers(oldIndex, newIndex);
+              // Convert from display index (top=0) to actual index
+              final actualOldIndex = layers.length - 1 - oldIndex;
+              int actualNewIndex = layers.length - 1 - newIndex;
+              if (newIndex > oldIndex) actualNewIndex++;
+              ref.read(layersProvider.notifier).reorderLayers(actualOldIndex, actualNewIndex);
             },
             itemBuilder: (context, index) {
               final layer = layers[layers.length - 1 - index]; // Display top layers at the top
@@ -251,21 +255,21 @@ class _LayerItem extends ConsumerWidget {
                   const Text('Blend Mode', style: TextStyle(color: Colors.white38, fontSize: 11)),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: DropdownButton<ui.BlendMode>(
+                    child: DropdownButton<BlendMode>(
                       value: layer.blendMode,
                       isExpanded: true,
                       dropdownColor: const Color(0xFF1A1A1A),
                       underline: const SizedBox(),
                       style: const TextStyle(color: Colors.white, fontSize: 11),
                       items: [
-                        ui.BlendMode.srcOver, ui.BlendMode.multiply, ui.BlendMode.screen, 
-                        ui.BlendMode.overlay, ui.BlendMode.softLight, ui.BlendMode.hardLight,
-                        ui.BlendMode.colorDodge, ui.BlendMode.colorBurn, ui.BlendMode.difference, 
-                        ui.BlendMode.exclusion, ui.BlendMode.hue, ui.BlendMode.saturation, 
-                        ui.BlendMode.color, ui.BlendMode.luminosity
+                        BlendMode.srcOver, BlendMode.multiply, BlendMode.screen, 
+                        BlendMode.overlay, BlendMode.softLight, BlendMode.hardLight,
+                        BlendMode.colorDodge, BlendMode.colorBurn, BlendMode.difference, 
+                        BlendMode.exclusion, BlendMode.hue, BlendMode.saturation, 
+                        BlendMode.color, BlendMode.luminosity,
                       ].map((mode) => DropdownMenuItem(
                         value: mode,
-                        child: Text(mode.name.toUpperCase()),
+                        child: Text(mode.name.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 11)),
                       )).toList(),
                       onChanged: (v) {
                         if (v != null) {

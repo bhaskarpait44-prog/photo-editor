@@ -15,6 +15,8 @@ class LayerHiveModel extends HiveObject {
   @HiveField(6) bool isLocked;
   @HiveField(7) int blendModeIndex;
   @HiveField(8) String projectId;
+  @HiveField(9) bool isFlippedH;
+  @HiveField(10) bool isFlippedV;
 
   LayerHiveModel({
     required this.id,
@@ -26,6 +28,8 @@ class LayerHiveModel extends HiveObject {
     required this.isLocked,
     required this.blendModeIndex,
     required this.projectId,
+    this.isFlippedH = false,
+    this.isFlippedV = false,
   });
 
   factory LayerHiveModel.fromLayerModel(LayerModel layer, String projectId) {
@@ -39,6 +43,8 @@ class LayerHiveModel extends HiveObject {
       isLocked: layer.isLocked,
       blendModeIndex: layer.blendMode.index,
       projectId: projectId,
+      isFlippedH: layer.isFlippedH,
+      isFlippedV: layer.isFlippedV,
     );
   }
 
@@ -52,6 +58,8 @@ class LayerHiveModel extends HiveObject {
       isVisible: isVisible,
       isLocked: isLocked,
       blendMode: BlendMode.values[blendModeIndex],
+      isFlippedH: isFlippedH,
+      isFlippedV: isFlippedV,
     );
   }
 }

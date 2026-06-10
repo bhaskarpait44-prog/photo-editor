@@ -86,6 +86,13 @@ class BottomToolbar extends ConsumerWidget {
               isSelected: activeTool == EditorTool.hsl,
               onTap: () => notifier.setActiveTool(EditorTool.hsl),
             ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.chartLine,
+              label: 'Curves',
+              isSelected: activeTool == EditorTool.curves,
+              onTap: () => notifier.setActiveTool(EditorTool.curves),
+            ),
           ],
         ),
       ),

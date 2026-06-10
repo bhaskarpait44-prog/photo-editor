@@ -27,6 +27,7 @@ import '../panels/transform_panel.dart';
 import '../panels/histogram_panel.dart';
 import '../panels/hsl_panel.dart';
 import '../panels/heal_panel.dart';
+import '../panels/curves_panel.dart';
 import '../../../services/image_processing_service.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../services/export_service.dart';
@@ -84,6 +85,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
              if (layer.name == 'Base') {
                ref.read(imageCacheProvider.notifier).cacheImage(layer.id, image);
                ref.read(activeLayerIdProvider.notifier).state = layer.id;
+             } else {
+               // Load other image layers from their paths
+               final otherFile = File(layer.imagePath!);
+               if (await otherFile.exists()) {
+                 final otherBytes = await otherFile.readAsBytes();
+                 final otherCodec = await ui.instantiateImageCodec(otherBytes);
+                 final otherFrame = await otherCodec.getNextFrame();
+                 ref.read(imageCacheProvider.notifier).cacheImage(layer.id, otherFrame.image);
+               }
              }
           }
         }
@@ -122,28 +132,59 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           children: [
             TopToolbar(
               onSave: () async {
-                final image = ref.read(editorProvider).image;
-                if (image == null) return;
-                
-                final tempDir = await getTemporaryDirectory();
-                final thumbPath = '${tempDir.path}/thumb_${widget.project.id}.jpg';
-                await ExportService.exportImage(image: image, path: thumbPath, format: 'jpg', quality: 0.7);
-                
-                final updated = widget.project.copyWith(
-                  thumbnailPath: thumbPath,
-                  updatedAt: DateTime.now(),
+                // Show saving indicator
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Row(children: [
+                      SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                      SizedBox(width: 12),
+                      Text('Saving...'),
+                    ]),
+                    duration: Duration(seconds: 30), // will be dismissed manually
+                    backgroundColor: Color(0xFF1A1A1A),
+                  ),
                 );
-                
-                final projectService = ref.read(projectServiceProvider);
-                await projectService.updateProject(updated);
-                
-                final layers = ref.read(layersProvider);
-                await projectService.saveLayers(widget.project.id, layers);
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Project saved'), backgroundColor: Color(0xFF1A1A1A)),
+
+                try {
+                  final image = ref.read(editorProvider).image;
+                  if (image == null) return;
+                  
+                  final tempDir = await getTemporaryDirectory();
+                  final thumbPath = '${tempDir.path}/thumb_${widget.project.id}.jpg';
+                  await ExportService.exportImage(image: image, path: thumbPath, format: 'jpg', quality: 0.7);
+                  
+                  final updated = widget.project.copyWith(
+                    thumbnailPath: thumbPath,
+                    updatedAt: DateTime.now(),
                   );
+                  
+                  final projectService = ref.read(projectServiceProvider);
+                  await projectService.updateProject(updated);
+                  
+                  final layers = ref.read(layersProvider);
+                  await projectService.saveLayers(widget.project.id, layers);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Row(children: [
+                          Icon(Icons.check_circle, color: Colors.green, size: 18),
+                          SizedBox(width: 12),
+                          Text('Project saved'),
+                        ]),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: Color(0xFF1A1A1A),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Save failed: $e'), backgroundColor: Colors.red),
+                    );
+                  }
                 }
               },
               onExport: () => Navigator.push(
@@ -187,18 +228,37 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     if (editorState.activeTool == EditorTool.brush && editorState.image != null)
                       BrushToolOverlay(
                         imageSize: Size(editorState.image!.width.toDouble(), editorState.image!.height.toDouble()),
-                        onStrokeEnd: (strokeImage) {
-                          // Handle stroke image, merge or add as layer
-                          final layerId = const Uuid().v4();
-                          final newLayer = LayerModel(
-                            id: layerId,
-                            name: 'Brush Stroke',
-                            type: LayerType.image,
-                            opacity: 100.0,
+                        onStrokeEnd: (strokeImage) async {
+                          final baseLayerId = ref.read(activeLayerIdProvider);
+                          if (baseLayerId == null) return;
+                          
+                          final baseImage = ref.read(imageCacheProvider)[baseLayerId];
+                          if (baseImage == null) return;
+
+                          // The stroke was drawn at screen size — composite it onto the base image
+                          // at proper scale using PictureRecorder
+                          final recorder = ui.PictureRecorder();
+                          final c = Canvas(recorder);
+                          
+                          // Draw base image
+                          c.drawImage(baseImage, Offset.zero, Paint());
+                          
+                          // Scale stroke to match image dimensions
+                          final scaleX = baseImage.width / strokeImage.width;
+                          final scaleY = baseImage.height / strokeImage.height;
+                          c.save();
+                          c.scale(scaleX, scaleY);
+                          c.drawImage(strokeImage, Offset.zero, Paint()..blendMode = BlendMode.srcOver);
+                          c.restore();
+                          
+                          final picture = recorder.endRecording();
+                          final composited = await picture.toImage(baseImage.width, baseImage.height);
+                          
+                          ref.read(imageCacheProvider.notifier).cacheImage(baseLayerId, composited);
+                          ref.read(editorProvider.notifier).setImage(composited);
+                          ref.read(editorProvider.notifier).pushHistory(
+                            ref.read(adjustmentsProvider), description: 'Brush Stroke'
                           );
-                          ref.read(layersProvider.notifier).addLayer(newLayer);
-                          ref.read(imageCacheProvider.notifier).cacheImage(layerId, strokeImage);
-                          ref.read(editorProvider.notifier).pushHistory(ref.read(adjustmentsProvider), description: 'Brush Stroke');
                         },
                       ),
                     if (editorState.isBeforeView)
@@ -208,7 +268,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                            child: const Text('BEFORE', style: TextStyle(color: Colors.white, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                            child: const Text('◀ BEFORE  |  AFTER ▶', style: TextStyle(color: Colors.white, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -306,6 +366,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         return const HslPanel();
       case EditorTool.heal:
         return const HealPanel();
+      case EditorTool.curves:
+        return const CurvesPanel();
       default:
         return const Center(
           child: Text(

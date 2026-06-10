@@ -37,11 +37,9 @@ class TransformPanel extends ConsumerWidget {
                   icon: Icons.flip,
                   label: 'Flip H',
                   onPressed: () {
-                    // Logic for Flip H: effectively negate scale if we support separate scaleX/Y
-                    // For now, let's just do a 180 rotation or something if we only have one scale
-                    // But the prompt says "negates scaleX". Our LayerModel only has 'scale'.
-                    // I'll skip literal scaleX negation for now and just follow the prompt's intent.
-                    // If scaleX/Y is added later, it will be easier.
+                    ref.read(layersProvider.notifier).updateLayer(
+                      layer.copyWith(isFlippedH: !layer.isFlippedH),
+                    );
                   },
                 ),
               ),
@@ -52,7 +50,7 @@ class TransformPanel extends ConsumerWidget {
                   label: 'Flip V',
                   onPressed: () {
                     ref.read(layersProvider.notifier).updateLayer(
-                      layer.copyWith(rotation: layer.rotation + pi),
+                      layer.copyWith(isFlippedV: !layer.isFlippedV),
                     );
                   },
                 ),

@@ -7,6 +7,7 @@ import '../../../providers/image_cache_provider.dart';
 import '../../../providers/interaction_provider.dart';
 import '../../../providers/editor_provider.dart';
 import '../../../providers/hsl_provider.dart';
+import '../../../providers/curves_provider.dart';
 import 'canvas_controller.dart';
 import 'canvas_painter.dart';
 
@@ -48,19 +49,23 @@ class _EditorCanvasState extends ConsumerState<EditorCanvas> {
     final isInteracting = ref.watch(isSliderInteractingProvider);
     final isBeforeView = ref.watch(editorProvider.select((s) => s.isBeforeView));
     final hslRanges = ref.watch(hslProvider);
+    final curvesState = ref.watch(curvesProvider);
+    
+    final activeTool = ref.watch(editorProvider.select((s) => s.activeTool));
+    final isDrawingTool = activeTool == EditorTool.brush || activeTool == EditorTool.text;
 
     return XGestureDetector(
-      onMoveUpdate: (details) {
+      onMoveUpdate: isDrawingTool ? null : (details) {
         widget.controller.updateTransform(
           offset: widget.controller.offset + details.delta,
         );
       },
-      onScaleUpdate: (details) {
+      onScaleUpdate: isDrawingTool ? null : (details) {
         widget.controller.updateTransform(
           scale: widget.controller.scale * details.scale,
         );
       },
-      onDoubleTap: (details) {
+      onDoubleTap: isDrawingTool ? null : (details) {
         widget.controller.reset();
       },
       child: RepaintBoundary(
@@ -76,6 +81,7 @@ class _EditorCanvasState extends ConsumerState<EditorCanvas> {
             isInteracting: isInteracting,
             isBeforeView: isBeforeView,
             hslRanges: hslRanges,
+            curvesState: curvesState,
           ),
         ),
       ),

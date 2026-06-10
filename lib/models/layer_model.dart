@@ -22,6 +22,8 @@ class LayerModel with _$LayerModel {
     @Default(0.0) double offsetY,
     @Default(1.0) double scale,
     @Default(0.0) double rotation,
+    @Default(false) bool isFlippedH,
+    @Default(false) bool isFlippedV,
     TextSettingsModel? textSettings,
   }) = _LayerModel;
 }

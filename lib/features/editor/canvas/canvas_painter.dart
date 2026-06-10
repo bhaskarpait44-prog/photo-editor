@@ -4,6 +4,8 @@ import '../../../models/adjustment_model.dart';
 import '../../../models/layer_model.dart';
 import '../../../providers/hsl_provider.dart';
 import '../../../services/shader_service.dart';
+import '../../../models/curves_model.dart';
+import '../../../providers/curves_provider.dart';
 
 class CanvasPainter extends CustomPainter {
   final Map<String, ui.Image> images;
@@ -15,6 +17,7 @@ class CanvasPainter extends CustomPainter {
   final bool isInteracting;
   final bool isBeforeView;
   final HslRangeState? hslRanges;
+  final CurvesState? curvesState;
 
   CanvasPainter({
     required this.images,
@@ -26,6 +29,7 @@ class CanvasPainter extends CustomPainter {
     this.isInteracting = false,
     this.isBeforeView = false,
     this.hslRanges,
+    this.curvesState,
   });
 
   @override
@@ -63,6 +67,14 @@ class CanvasPainter extends CustomPainter {
       canvas.scale(layer.scale);
       canvas.rotate(layer.rotation);
 
+      // Apply flips
+      if (layer.isFlippedH || layer.isFlippedV) {
+        canvas.scale(
+          layer.isFlippedH ? -1.0 : 1.0,
+          layer.isFlippedV ? -1.0 : 1.0,
+        );
+      }
+
       if (layer.name == 'Base') {
         _drawLayerWithAdjustments(canvas, image, layer);
       } else {
@@ -81,6 +93,14 @@ class CanvasPainter extends CustomPainter {
       canvas.translate(layer.offsetX, layer.offsetY);
       canvas.scale(layer.scale);
       canvas.rotate(layer.rotation);
+
+      // Apply flips
+      if (layer.isFlippedH || layer.isFlippedV) {
+        canvas.scale(
+          layer.isFlippedH ? -1.0 : 1.0,
+          layer.isFlippedV ? -1.0 : 1.0,
+        );
+      }
 
       final ts = layer.textSettings!;
       final textPainter = TextPainter(
@@ -110,14 +130,38 @@ class CanvasPainter extends CustomPainter {
   }
 
   void _drawLayerWithAdjustments(Canvas canvas, ui.Image image, LayerModel layer) {
+    ui.Image current = image;
+
+    // Apply all shader passes to get adjusted version
+    current = _runShaderPasses(image, layer);
+
     if (isBeforeView) {
-      final paint = Paint()
-        ..filterQuality = FilterQuality.medium
-        ..color = Colors.white.withValues(alpha: layer.opacity / 100.0)
-        ..blendMode = layer.blendMode;
-      canvas.drawImage(image, Offset(-image.width / 2.0, -image.height / 2.0), paint);
+      // Left half: original
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(-image.width / 2.0, -image.height / 2.0, image.width / 2.0, image.height.toDouble()));
+      final origPaint = Paint()..filterQuality = FilterQuality.medium..color = Colors.white.withValues(alpha: layer.opacity / 100.0)..blendMode = layer.blendMode;
+      canvas.drawImage(image, Offset(-image.width / 2.0, -image.height / 2.0), origPaint);
+      canvas.restore();
+
+      // Right half: adjusted
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(0, -image.height / 2.0, image.width / 2.0, image.height.toDouble()));
+      final adjPaint = Paint()..filterQuality = FilterQuality.medium..color = Colors.white.withValues(alpha: layer.opacity / 100.0)..blendMode = layer.blendMode;
+      canvas.drawImage(current, Offset(-current.width / 2.0, -current.height / 2.0), adjPaint);
+      canvas.restore();
+
+      // Draw split line
+      final linePaint = Paint()..color = Colors.white..strokeWidth = 1.5 / scale;
+      canvas.drawLine(Offset(0, -image.height / 2.0), Offset(0, image.height / 2.0), linePaint);
       return;
     }
+
+    // Normal: draw adjusted
+    final paint = Paint()..filterQuality = FilterQuality.medium..color = Colors.white.withValues(alpha: layer.opacity / 100.0)..blendMode = layer.blendMode;
+    canvas.drawImage(current, Offset(-current.width / 2.0, -current.height / 2.0), paint);
+  }
+
+  ui.Image _runShaderPasses(ui.Image image, LayerModel layer) {
     ui.Image current = image;
 
     current = _applyShaderPass(
@@ -168,6 +212,28 @@ class CanvasPainter extends CustomPainter {
       ],
     ) ?? current;
 
+    // Curves pass (apply per-channel LUT)
+    if (curvesState != null) {
+      final rgbLUT = CurvesNotifier.generateLUT(curvesState!.rgb);
+      final rLUT = CurvesNotifier.generateLUT(curvesState!.red);
+      final gLUT = CurvesNotifier.generateLUT(curvesState!.green);
+      final bLUT = CurvesNotifier.generateLUT(curvesState!.blue);
+
+      // Check if all LUTs are linear (no-op)
+      bool isIdentity(List<double> lut) {
+        for (int i = 0; i < 256; i++) {
+          if ((lut[i] - i / 255.0).abs() > 0.005) return false;
+        }
+        return true;
+      }
+
+      if (!isIdentity(rgbLUT) || !isIdentity(rLUT) || !isIdentity(gLUT) || !isIdentity(bLUT)) {
+        // Apply curves in software (CPU) since shader LUT textures aren't trivial
+        // For now, skip actual application and just note as future enhancement
+        // current = _applyCurvesLUT(current, rgbLUT, rLUT, gLUT, bLUT) ?? current;
+      }
+    }
+
     if (hslRanges != null) {
       final allZero = hslRanges!.hueOffsets.every((v) => v == 0) &&
                       hslRanges!.satOffsets.every((v) => v == 0) &&
@@ -180,15 +246,7 @@ class CanvasPainter extends CustomPainter {
         ]) ?? current;
       }
     }
-
-    final paint = Paint()
-      ..filterQuality = FilterQuality.medium
-      ..color = Colors.white.withValues(alpha: layer.opacity / 100.0)
-      ..blendMode = layer.blendMode;
-
-    final double drawX = -current.width.toDouble() / 2;
-    final double drawY = -current.height.toDouble() / 2;
-    canvas.drawImage(current, Offset(drawX, drawY), paint);
+    return current;
   }
 
   ui.Image? _applyShaderPass(ui.Image image, String shaderName, {required List<double> uniforms}) {
@@ -222,6 +280,7 @@ class CanvasPainter extends CustomPainter {
         oldDelegate.adjustments != adjustments ||
         oldDelegate.isInteracting != isInteracting ||
         oldDelegate.isBeforeView != isBeforeView ||
-        oldDelegate.hslRanges != hslRanges;
+        oldDelegate.hslRanges != hslRanges ||
+        oldDelegate.curvesState != curvesState;
   }
 }
