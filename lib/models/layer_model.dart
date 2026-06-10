@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'text_settings_model.dart';
 
 part 'layer_model.freezed.dart';
 
@@ -21,5 +22,6 @@ class LayerModel with _$LayerModel {
     @Default(0.0) double offsetY,
     @Default(1.0) double scale,
     @Default(0.0) double rotation,
+    TextSettingsModel? textSettings,
   }) = _LayerModel;
 }

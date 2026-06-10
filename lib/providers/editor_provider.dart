@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/adjustment_model.dart';
 
-enum EditorTool { none, adjust, filter, crop, layers, brush, text, heal, transform }
+enum EditorTool { none, adjust, filter, crop, layers, brush, text, heal, transform, hsl }
 
 // Command pattern — each history entry stores adjustment state, NOT bitmap
 class HistoryEntry {
@@ -91,3 +91,5 @@ class EditorNotifier extends StateNotifier<EditorState> {
   bool get canUndo => state.historyIndex >= 0;
   bool get canRedo => state.historyIndex < state.history.length - 1;
 }
+
+final isHistogramVisibleProvider = StateProvider<bool>((ref) => false);

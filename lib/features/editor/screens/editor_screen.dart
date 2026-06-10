@@ -20,6 +20,13 @@ import '../panels/filters_panel.dart';
 import '../tools/crop_tool.dart';
 import '../tools/brush_tool_overlay.dart';
 import '../panels/brush_panel.dart';
+import '../tools/text_tool_overlay.dart';
+import '../panels/text_panel.dart';
+import '../tools/transform_tool_overlay.dart';
+import '../panels/transform_panel.dart';
+import '../panels/histogram_panel.dart';
+import '../panels/hsl_panel.dart';
+import '../panels/heal_panel.dart';
 import '../../../services/image_processing_service.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../services/export_service.dart';
@@ -133,7 +140,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 final layers = ref.read(layersProvider);
                 await projectService.saveLayers(widget.project.id, layers);
                 
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Project saved'), backgroundColor: Color(0xFF1A1A1A)),
                   );
@@ -194,7 +201,35 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                           ref.read(editorProvider.notifier).pushHistory(ref.read(adjustmentsProvider), description: 'Brush Stroke');
                         },
                       ),
+                    if (editorState.isBeforeView)
+                      Positioned(
+                        top: 12, left: 0, right: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                            child: const Text('BEFORE', style: TextStyle(color: Colors.white, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    if (editorState.activeTool == EditorTool.text)
+                      const TextToolOverlay(),
+                    if (editorState.activeTool == EditorTool.transform)
+                      const TransformToolOverlay(),
                   ],
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final show = ref.watch(isHistogramVisibleProvider);
+                      if (!show) return const SizedBox.shrink();
+                      return Positioned(
+                        bottom: 0, left: 0, right: 0,
+                        child: Container(
+                          color: const Color(0xE6141414),
+                          child: const HistogramPanel(),
+                        ),
+                      );
+                    },
+                  ),
                   if (editorState.activeTool != EditorTool.crop && editorState.activeTool != EditorTool.brush)
                     _buildSidePanel(editorState.activeTool),
                 ],
@@ -263,11 +298,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         return const FiltersPanel();
       case EditorTool.brush:
         return const BrushPanel();
+      case EditorTool.text:
+        return const TextPanel();
+      case EditorTool.transform:
+        return const TransformPanel();
+      case EditorTool.hsl:
+        return const HslPanel();
+      case EditorTool.heal:
+        return const HealPanel();
       default:
-        return Center(
+        return const Center(
           child: Text(
-            '\${activeTool.name} options coming soon',
-            style: const TextStyle(color: Colors.white38),
+            'Options coming soon',
+            style: TextStyle(color: Colors.white38),
           ),
         );
     }

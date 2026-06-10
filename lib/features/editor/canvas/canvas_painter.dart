@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../models/adjustment_model.dart';
 import '../../../models/layer_model.dart';
+import '../../../providers/hsl_provider.dart';
 import '../../../services/shader_service.dart';
 
 class CanvasPainter extends CustomPainter {
@@ -12,6 +13,8 @@ class CanvasPainter extends CustomPainter {
   final double rotation;
   final AdjustmentModel adjustments;
   final bool isInteracting;
+  final bool isBeforeView;
+  final HslRangeState? hslRanges;
 
   CanvasPainter({
     required this.images,
@@ -21,6 +24,8 @@ class CanvasPainter extends CustomPainter {
     required this.rotation,
     required this.adjustments,
     this.isInteracting = false,
+    this.isBeforeView = false,
+    this.hslRanges,
   });
 
   @override
@@ -71,10 +76,48 @@ class CanvasPainter extends CustomPainter {
         canvas.drawImage(image, Offset(drawX, drawY), paint);
       }
       canvas.restore();
+    } else if (layer.type == LayerType.text && layer.textSettings != null) {
+      canvas.save();
+      canvas.translate(layer.offsetX, layer.offsetY);
+      canvas.scale(layer.scale);
+      canvas.rotate(layer.rotation);
+
+      final ts = layer.textSettings!;
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: ts.text,
+          style: TextStyle(
+            fontFamily: ts.fontFamily,
+            fontSize: ts.fontSize,
+            color: ts.color.withValues(alpha: layer.opacity / 100.0),
+            fontWeight: ts.isBold ? FontWeight.bold : FontWeight.normal,
+            fontStyle: ts.isItalic ? FontStyle.italic : FontStyle.normal,
+            decoration: ts.isUnderline ? TextDecoration.underline : TextDecoration.none,
+            letterSpacing: ts.letterSpacing,
+            height: ts.lineHeight,
+            shadows: ts.shadowBlur > 0
+              ? [Shadow(color: ts.shadowColor, blurRadius: ts.shadowBlur, offset: ts.shadowOffset)]
+              : null,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: ts.textAlign,
+      )..layout(maxWidth: 400);
+
+      textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
+      canvas.restore();
     }
   }
 
   void _drawLayerWithAdjustments(Canvas canvas, ui.Image image, LayerModel layer) {
+    if (isBeforeView) {
+      final paint = Paint()
+        ..filterQuality = FilterQuality.medium
+        ..color = Colors.white.withValues(alpha: layer.opacity / 100.0)
+        ..blendMode = layer.blendMode;
+      canvas.drawImage(image, Offset(-image.width / 2.0, -image.height / 2.0), paint);
+      return;
+    }
     ui.Image current = image;
 
     current = _applyShaderPass(
@@ -125,6 +168,19 @@ class CanvasPainter extends CustomPainter {
       ],
     ) ?? current;
 
+    if (hslRanges != null) {
+      final allZero = hslRanges!.hueOffsets.every((v) => v == 0) &&
+                      hslRanges!.satOffsets.every((v) => v == 0) &&
+                      hslRanges!.lumOffsets.every((v) => v == 0);
+      if (!allZero) {
+        current = _applyShaderPass(current, 'hsl_ranges', uniforms: [
+          ...hslRanges!.hueOffsets,
+          ...hslRanges!.satOffsets,
+          ...hslRanges!.lumOffsets,
+        ]) ?? current;
+      }
+    }
+
     final paint = Paint()
       ..filterQuality = FilterQuality.medium
       ..color = Colors.white.withValues(alpha: layer.opacity / 100.0)
@@ -164,6 +220,8 @@ class CanvasPainter extends CustomPainter {
         oldDelegate.scale != scale ||
         oldDelegate.rotation != rotation ||
         oldDelegate.adjustments != adjustments ||
-        oldDelegate.isInteracting != isInteracting;
+        oldDelegate.isInteracting != isInteracting ||
+        oldDelegate.isBeforeView != isBeforeView ||
+        oldDelegate.hslRanges != hslRanges;
   }
 }

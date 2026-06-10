@@ -60,6 +60,15 @@ class TopToolbar extends ConsumerWidget {
             isSelected: editorState.isBeforeView,
             onPressed: () => notifier.setBeforeView(!editorState.isBeforeView),
           ),
+          Consumer(
+            builder: (context, ref, _) {
+              final isVisible = ref.watch(isHistogramVisibleProvider);
+              return IconButton(
+                icon: Icon(Icons.bar_chart, color: isVisible ? const Color(0xFFFF6B35) : Colors.white),
+                onPressed: () => ref.read(isHistogramVisibleProvider.notifier).state = !isVisible,
+              );
+            },
+          ),
           const Spacer(),
           TextButton(
             onPressed: onSave,

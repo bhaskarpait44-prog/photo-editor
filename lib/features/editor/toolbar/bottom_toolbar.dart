@@ -14,63 +14,80 @@ class BottomToolbar extends ConsumerWidget {
 
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
         color: Color(0xFF141414),
         border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _ToolIcon(
-            icon: PhosphorIcons.slidersHorizontal,
-            label: 'Adjust',
-            isSelected: activeTool == EditorTool.adjust,
-            onTap: () => notifier.setActiveTool(EditorTool.adjust),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.magicWand,
-            label: 'Filters',
-            isSelected: activeTool == EditorTool.filter,
-            onTap: () => notifier.setActiveTool(EditorTool.filter),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.crop,
-            label: 'Crop',
-            isSelected: activeTool == EditorTool.crop,
-            onTap: () => notifier.setActiveTool(EditorTool.crop),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.stack,
-            label: 'Layers',
-            isSelected: activeTool == EditorTool.layers,
-            onTap: () => notifier.setActiveTool(EditorTool.layers),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.paintBrush,
-            label: 'Brush',
-            isSelected: activeTool == EditorTool.brush,
-            onTap: () => notifier.setActiveTool(EditorTool.brush),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.textT,
-            label: 'Text',
-            isSelected: activeTool == EditorTool.text,
-            onTap: () => notifier.setActiveTool(EditorTool.text),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.bandaids,
-            label: 'Heal',
-            isSelected: activeTool == EditorTool.heal,
-            onTap: () => notifier.setActiveTool(EditorTool.heal),
-          ),
-          _ToolIcon(
-            icon: PhosphorIcons.arrowsOut,
-            label: 'Transform',
-            isSelected: activeTool == EditorTool.transform,
-            onTap: () => notifier.setActiveTool(EditorTool.transform),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _ToolIcon(
+              icon: PhosphorIcons.slidersHorizontal,
+              label: 'Adjust',
+              isSelected: activeTool == EditorTool.adjust,
+              onTap: () => notifier.setActiveTool(EditorTool.adjust),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.magicWand,
+              label: 'Filters',
+              isSelected: activeTool == EditorTool.filter,
+              onTap: () => notifier.setActiveTool(EditorTool.filter),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.crop,
+              label: 'Crop',
+              isSelected: activeTool == EditorTool.crop,
+              onTap: () => notifier.setActiveTool(EditorTool.crop),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.stack,
+              label: 'Layers',
+              isSelected: activeTool == EditorTool.layers,
+              onTap: () => notifier.setActiveTool(EditorTool.layers),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.paintBrush,
+              label: 'Brush',
+              isSelected: activeTool == EditorTool.brush,
+              onTap: () => notifier.setActiveTool(EditorTool.brush),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.textT,
+              label: 'Text',
+              isSelected: activeTool == EditorTool.text,
+              onTap: () => notifier.setActiveTool(EditorTool.text),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.bandaids,
+              label: 'Heal',
+              isSelected: activeTool == EditorTool.heal,
+              onTap: () => notifier.setActiveTool(EditorTool.heal),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.arrowsOut,
+              label: 'Transform',
+              isSelected: activeTool == EditorTool.transform,
+              onTap: () => notifier.setActiveTool(EditorTool.transform),
+            ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: PhosphorIcons.palette,
+              label: 'HSL',
+              isSelected: activeTool == EditorTool.hsl,
+              onTap: () => notifier.setActiveTool(EditorTool.hsl),
+            ),
+          ],
+        ),
       ),
     );
   }

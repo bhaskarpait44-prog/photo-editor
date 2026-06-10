@@ -5,6 +5,8 @@ import '../../../models/adjustment_model.dart';
 import '../../../providers/layers_provider.dart';
 import '../../../providers/image_cache_provider.dart';
 import '../../../providers/interaction_provider.dart';
+import '../../../providers/editor_provider.dart';
+import '../../../providers/hsl_provider.dart';
 import 'canvas_controller.dart';
 import 'canvas_painter.dart';
 
@@ -44,6 +46,8 @@ class _EditorCanvasState extends ConsumerState<EditorCanvas> {
     final layers = ref.watch(layersProvider);
     final images = ref.watch(imageCacheProvider);
     final isInteracting = ref.watch(isSliderInteractingProvider);
+    final isBeforeView = ref.watch(editorProvider.select((s) => s.isBeforeView));
+    final hslRanges = ref.watch(hslProvider);
 
     return XGestureDetector(
       onMoveUpdate: (details) {
@@ -70,6 +74,8 @@ class _EditorCanvasState extends ConsumerState<EditorCanvas> {
             rotation: widget.controller.rotation,
             adjustments: widget.adjustments,
             isInteracting: isInteracting,
+            isBeforeView: isBeforeView,
+            hslRanges: hslRanges,
           ),
         ),
       ),

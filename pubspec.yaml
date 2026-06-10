@@ -45,3 +45,4 @@ flutter:
     - shaders/exposure_shadows_highlights.frag
     - shaders/temperature_tint.frag
     - shaders/detail_effects.frag
+    - shaders/hsl_ranges.frag

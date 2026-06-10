@@ -29,6 +29,7 @@ mixin _$LayerModel {
   double get offsetY => throw _privateConstructorUsedError;
   double get scale => throw _privateConstructorUsedError;
   double get rotation => throw _privateConstructorUsedError;
+  TextSettingsModel? get textSettings => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LayerModelCopyWith<LayerModel> get copyWith =>
@@ -54,7 +55,10 @@ abstract class $LayerModelCopyWith<$Res> {
       double offsetX,
       double offsetY,
       double scale,
-      double rotation});
+      double rotation,
+      TextSettingsModel? textSettings});
+
+  $TextSettingsModelCopyWith<$Res>? get textSettings;
 }
 
 /// @nodoc
@@ -83,6 +87,7 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
     Object? offsetY = null,
     Object? scale = null,
     Object? rotation = null,
+    Object? textSettings = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -137,7 +142,23 @@ class _$LayerModelCopyWithImpl<$Res, $Val extends LayerModel>
           ? _value.rotation
           : rotation // ignore: cast_nullable_to_non_nullable
               as double,
+      textSettings: freezed == textSettings
+          ? _value.textSettings
+          : textSettings // ignore: cast_nullable_to_non_nullable
+              as TextSettingsModel?,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $TextSettingsModelCopyWith<$Res>? get textSettings {
+    if (_value.textSettings == null) {
+      return null;
+    }
+
+    return $TextSettingsModelCopyWith<$Res>(_value.textSettings!, (value) {
+      return _then(_value.copyWith(textSettings: value) as $Val);
+    });
   }
 }
 
@@ -162,7 +183,11 @@ abstract class _$$LayerModelImplCopyWith<$Res>
       double offsetX,
       double offsetY,
       double scale,
-      double rotation});
+      double rotation,
+      TextSettingsModel? textSettings});
+
+  @override
+  $TextSettingsModelCopyWith<$Res>? get textSettings;
 }
 
 /// @nodoc
@@ -189,6 +214,7 @@ class __$$LayerModelImplCopyWithImpl<$Res>
     Object? offsetY = null,
     Object? scale = null,
     Object? rotation = null,
+    Object? textSettings = freezed,
   }) {
     return _then(_$LayerModelImpl(
       id: null == id
@@ -243,6 +269,10 @@ class __$$LayerModelImplCopyWithImpl<$Res>
           ? _value.rotation
           : rotation // ignore: cast_nullable_to_non_nullable
               as double,
+      textSettings: freezed == textSettings
+          ? _value.textSettings
+          : textSettings // ignore: cast_nullable_to_non_nullable
+              as TextSettingsModel?,
     ));
   }
 }
@@ -263,7 +293,8 @@ class _$LayerModelImpl implements _LayerModel {
       this.offsetX = 0.0,
       this.offsetY = 0.0,
       this.scale = 1.0,
-      this.rotation = 0.0});
+      this.rotation = 0.0,
+      this.textSettings});
 
   @override
   final String id;
@@ -299,10 +330,12 @@ class _$LayerModelImpl implements _LayerModel {
   @override
   @JsonKey()
   final double rotation;
+  @override
+  final TextSettingsModel? textSettings;
 
   @override
   String toString() {
-    return 'LayerModel(id: $id, name: $name, type: $type, imagePath: $imagePath, maskPath: $maskPath, opacity: $opacity, isVisible: $isVisible, isLocked: $isLocked, blendMode: $blendMode, offsetX: $offsetX, offsetY: $offsetY, scale: $scale, rotation: $rotation)';
+    return 'LayerModel(id: $id, name: $name, type: $type, imagePath: $imagePath, maskPath: $maskPath, opacity: $opacity, isVisible: $isVisible, isLocked: $isLocked, blendMode: $blendMode, offsetX: $offsetX, offsetY: $offsetY, scale: $scale, rotation: $rotation, textSettings: $textSettings)';
   }
 
   @override
@@ -328,7 +361,9 @@ class _$LayerModelImpl implements _LayerModel {
             (identical(other.offsetY, offsetY) || other.offsetY == offsetY) &&
             (identical(other.scale, scale) || other.scale == scale) &&
             (identical(other.rotation, rotation) ||
-                other.rotation == rotation));
+                other.rotation == rotation) &&
+            (identical(other.textSettings, textSettings) ||
+                other.textSettings == textSettings));
   }
 
   @override
@@ -346,7 +381,8 @@ class _$LayerModelImpl implements _LayerModel {
       offsetX,
       offsetY,
       scale,
-      rotation);
+      rotation,
+      textSettings);
 
   @JsonKey(ignore: true)
   @override
@@ -369,7 +405,8 @@ abstract class _LayerModel implements LayerModel {
       final double offsetX,
       final double offsetY,
       final double scale,
-      final double rotation}) = _$LayerModelImpl;
+      final double rotation,
+      final TextSettingsModel? textSettings}) = _$LayerModelImpl;
 
   @override
   String get id;
@@ -397,6 +434,8 @@ abstract class _LayerModel implements LayerModel {
   double get scale;
   @override
   double get rotation;
+  @override
+  TextSettingsModel? get textSettings;
   @override
   @JsonKey(ignore: true)
   _$$LayerModelImplCopyWith<_$LayerModelImpl> get copyWith =>

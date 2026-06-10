@@ -15,6 +15,7 @@ class ShaderService {
       _loadShader('exposure_shadows_highlights', 'shaders/exposure_shadows_highlights.frag'),
       _loadShader('temperature_tint', 'shaders/temperature_tint.frag'),
       _loadShader('detail_effects', 'shaders/detail_effects.frag'),
+      _loadShader('hsl_ranges', 'shaders/hsl_ranges.frag'),
     ]);
   }
 
