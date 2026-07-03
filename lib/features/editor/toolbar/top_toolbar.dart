@@ -35,6 +35,38 @@ class TopToolbar extends ConsumerWidget {
             ),
             onPressed: () => Navigator.pop(context),
           ),
+          Consumer(
+            builder: (context, ref, _) {
+              final image = ref.watch(editorProvider.select((s) => s.image));
+              if (image == null) return const Spacer();
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '${image.width} × ${image.height}',
+                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                ),
+              );
+            },
+          ),
+          const Spacer(),
+          Consumer(
+            builder: (context, ref, _) {
+              final tool = ref.watch(editorProvider.select((s) => s.activeTool));
+              if (tool == EditorTool.none) return const SizedBox.shrink();
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B35).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4), width: 0.5),
+                ),
+                child: Text(
+                  tool.name.toUpperCase(),
+                  style: const TextStyle(color: Color(0xFFFF6B35), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                ),
+              );
+            },
+          ),
           const Spacer(),
           IconButton(
             icon: Icon(

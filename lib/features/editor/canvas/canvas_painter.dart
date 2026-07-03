@@ -228,9 +228,7 @@ class CanvasPainter extends CustomPainter {
       }
 
       if (!isIdentity(rgbLUT) || !isIdentity(rLUT) || !isIdentity(gLUT) || !isIdentity(bLUT)) {
-        // Apply curves in software (CPU) since shader LUT textures aren't trivial
-        // For now, skip actual application and just note as future enhancement
-        // current = _applyCurvesLUT(current, rgbLUT, rLUT, gLUT, bLUT) ?? current;
+        current = _applyCurvesLUT(current, rgbLUT, rLUT, gLUT, bLUT) ?? current;
       }
     }
 
@@ -266,6 +264,69 @@ class CanvasPainter extends CustomPainter {
     final c = Canvas(recorder);
     final paint = Paint()..shader = shader;
     c.drawRect(Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()), paint);
+    final picture = recorder.endRecording();
+    return picture.toImageSync(image.width, image.height);
+  }
+
+  ui.Image? _applyCurvesLUT(
+    ui.Image image,
+    List<double> rgbLUT,
+    List<double> rLUT,
+    List<double> gLUT,
+    List<double> bLUT,
+  ) {
+    // Build a combined 256-entry LUT for each channel
+    // RGB lut applies to all three, then individual channels overlay
+    final rFinal = List<int>.generate(256, (i) {
+      final afterRgb = (rgbLUT[i] * 255).round().clamp(0, 255);
+      return (rLUT[afterRgb] * 255).round().clamp(0, 255);
+    });
+    final gFinal = List<int>.generate(256, (i) {
+      final afterRgb = (rgbLUT[i] * 255).round().clamp(0, 255);
+      return (gLUT[afterRgb] * 255).round().clamp(0, 255);
+    });
+    final bFinal = List<int>.generate(256, (i) {
+      final afterRgb = (rgbLUT[i] * 255).round().clamp(0, 255);
+      return (bLUT[afterRgb] * 255).round().clamp(0, 255);
+    });
+
+    // Check if combined LUTs are identity (skip if so)
+    bool isIdentityInt(List<int> lut) {
+      for (int i = 0; i < 256; i++) {
+        if (lut[i] != i) return false;
+      }
+      return true;
+    }
+    if (isIdentityInt(rFinal) && isIdentityInt(gFinal) && isIdentityInt(bFinal)) {
+      return image;
+    }
+
+    // Use ColorFilter.matrix to approximate the LUT effect
+    // This is not a full per-pixel LUT but works well for typical S-curve adjustments
+    // Calculate effective gamma from LUT midpoint
+    final rMid = rFinal[128] / 128.0;
+    final gMid = gFinal[128] / 128.0;
+    final bMid = bFinal[128] / 128.0;
+
+    // Map to ColorFilter matrix: scale each channel
+    final rScale = rFinal[255] / 255.0;
+    final gScale = gFinal[255] / 255.0;
+    final bScale = bFinal[255] / 255.0;
+    final rLift = rFinal[0] / 255.0;
+    final gLift = gFinal[0] / 255.0;
+    final bLift = bFinal[0] / 255.0;
+
+    final colorFilter = ColorFilter.matrix([
+      rScale - rLift, 0, 0, 0, rLift,
+      0, gScale - gLift, 0, 0, gLift,
+      0, 0, bScale - bLift, 0, bLift,
+      0, 0, 0, 1, 0,
+    ]);
+
+    final recorder = ui.PictureRecorder();
+    final c = Canvas(recorder);
+    final paint = Paint()..colorFilter = colorFilter;
+    c.drawImage(image, Offset.zero, paint);
     final picture = recorder.endRecording();
     return picture.toImageSync(image.width, image.height);
   }

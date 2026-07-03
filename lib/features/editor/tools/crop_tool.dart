@@ -5,7 +5,7 @@ enum AspectRatio { free, square, fourThree, threeTwo, sixteenNine, nineToSixteen
 
 class CropTool extends StatefulWidget {
   final Size imageSize;
-  final Function(Rect) onCropApplied;
+  final Function(Rect, double) onCropApplied;
   final VoidCallback onCancel;
 
   const CropTool({super.key, required this.imageSize, required this.onCropApplied, required this.onCancel});
@@ -216,7 +216,7 @@ class _CropToolState extends State<CropTool> {
                 const SizedBox(width: 24),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
-                  onPressed: () => widget.onCropApplied(_cropRect),
+                  onPressed: () => widget.onCropApplied(_cropRect, _rotation),
                   child: const Text('Apply', style: TextStyle(color: Colors.white)),
                 ),
               ],

@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/adjustment_model.dart';
 
-enum EditorTool { none, adjust, filter, crop, layers, brush, text, heal, transform, hsl, curves }
+enum EditorTool { none, adjust, filter, crop, layers, brush, text, heal, transform, hsl, curves, select }
 
 // Command pattern — each history entry stores adjustment state, NOT bitmap
 class HistoryEntry {

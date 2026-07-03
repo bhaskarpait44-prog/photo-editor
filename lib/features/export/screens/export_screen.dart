@@ -20,6 +20,24 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   String _resizeMode = 'Original';
   bool _isExporting = false;
   double _progress = 0.0;
+  
+  final TextEditingController _widthController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  bool _lockAspect = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _widthController.text = widget.image.width.toString();
+    _heightController.text = widget.image.height.toString();
+  }
+
+  @override
+  void dispose() {
+    _widthController.dispose();
+    _heightController.dispose();
+    super.dispose();
+  }
 
   Future<void> _export() async {
     setState(() {
@@ -33,36 +51,79 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         final granted = await Gal.requestAccess();
         if (!granted) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gallery access denied')));
+          setState(() => _isExporting = false);
           return;
         }
       }
 
+      ui.Image exportImage = widget.image;
+
+      // Apply resize if needed
+      if (_resizeMode == '50%') {
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(recorder);
+        final newW = (widget.image.width * 0.5).toInt();
+        final newH = (widget.image.height * 0.5).toInt();
+        canvas.drawImageRect(
+          widget.image,
+          Rect.fromLTWH(0, 0, widget.image.width.toDouble(), widget.image.height.toDouble()),
+          Rect.fromLTWH(0, 0, newW.toDouble(), newH.toDouble()),
+          Paint()..filterQuality = FilterQuality.high,
+        );
+        final picture = recorder.endRecording();
+        exportImage = await picture.toImage(newW, newH);
+      } else if (_resizeMode == 'Custom') {
+        final newW = int.tryParse(_widthController.text) ?? widget.image.width;
+        final newH = int.tryParse(_heightController.text) ?? widget.image.height;
+        if (newW != widget.image.width || newH != widget.image.height) {
+          final recorder = ui.PictureRecorder();
+          final canvas = Canvas(recorder);
+          canvas.drawImageRect(
+            widget.image,
+            Rect.fromLTWH(0, 0, widget.image.width.toDouble(), widget.image.height.toDouble()),
+            Rect.fromLTWH(0, 0, newW.toDouble(), newH.toDouble()),
+            Paint()..filterQuality = FilterQuality.high,
+          );
+          exportImage = await recorder.endRecording().toImage(newW, newH);
+        }
+      }
+
+      setState(() => _progress = 0.1);
+
       final tempDir = await getTemporaryDirectory();
-      final filename = 'export_${DateTime.now().millisecondsSinceEpoch}.$_format';
+      final filename = 'pixelforge_${DateTime.now().millisecondsSinceEpoch}.$_format';
       final path = '${tempDir.path}/$filename';
 
-      // Ignoring resize mode for brevity, would resize in ExportService or ImageProcessingService
-
       await ExportService.exportImage(
-        image: widget.image,
+        image: exportImage,
         path: path,
         format: _format,
         quality: _quality,
-        onProgress: (p) => setState(() => _progress = p),
+        onProgress: (p) => setState(() => _progress = 0.1 + p * 0.8),
       );
 
+      setState(() => _progress = 0.95);
       await Gal.putImage(path);
+      setState(() => _progress = 1.0);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Image saved to gallery'), backgroundColor: Color(0xFF1A1A1A)),
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 18),
+              const SizedBox(width: 12),
+              Text('Saved as ${_format.toUpperCase()} • ${exportImage.width}×${exportImage.height}px'),
+            ]),
+            backgroundColor: const Color(0xFF1A1A1A),
+            duration: const Duration(seconds: 3),
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error exporting: $e')),
+          SnackBar(content: Text('Error exporting: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -126,6 +187,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               segments: const [
                 ButtonSegment(value: 'Original', label: Text('Original')),
                 ButtonSegment(value: '50%', label: Text('50%')),
+                ButtonSegment(value: 'Custom', label: Text('Custom')),
               ],
               selected: {_resizeMode},
               onSelectionChanged: (set) => setState(() => _resizeMode = set.first),
@@ -134,6 +196,55 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                 backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? const Color(0xFFFF6B35) : Colors.white10),
               ),
             ),
+            
+            if (_resizeMode == 'Custom') ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _widthController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Width (px)',
+                        labelStyle: TextStyle(color: Colors.white38),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF6B35))),
+                      ),
+                      onChanged: (v) {
+                        if (_lockAspect) {
+                          final w = int.tryParse(v);
+                          if (w != null && w > 0) {
+                            final ratio = widget.image.height / widget.image.width;
+                            _heightController.text = (w * ratio).toInt().toString();
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _heightController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Height (px)',
+                        labelStyle: TextStyle(color: Colors.white38),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF6B35))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(_lockAspect ? Icons.link : Icons.link_off, color: _lockAspect ? const Color(0xFFFF6B35) : Colors.white38),
+                    onPressed: () => setState(() => _lockAspect = !_lockAspect),
+                  ),
+                ],
+              ),
+            ],
             
             const Spacer(),
             if (_isExporting)

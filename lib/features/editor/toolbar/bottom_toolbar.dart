@@ -93,6 +93,13 @@ class BottomToolbar extends ConsumerWidget {
               isSelected: activeTool == EditorTool.curves,
               onTap: () => notifier.setActiveTool(EditorTool.curves),
             ),
+            const SizedBox(width: 20),
+            _ToolIcon(
+              icon: Icons.crop_free,
+              label: 'Select',
+              isSelected: activeTool == EditorTool.select,
+              onTap: () => notifier.setActiveTool(EditorTool.select),
+            ),
           ],
         ),
       ),

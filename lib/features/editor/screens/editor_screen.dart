@@ -28,6 +28,8 @@ import '../panels/histogram_panel.dart';
 import '../panels/hsl_panel.dart';
 import '../panels/heal_panel.dart';
 import '../panels/curves_panel.dart';
+import '../tools/selection_tool_overlay.dart';
+import '../panels/selection_panel.dart';
 import '../../../services/image_processing_service.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../services/export_service.dart';
@@ -49,6 +51,7 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   late final CanvasController _canvasController;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -64,7 +67,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   Future<void> _loadImage() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final file = File(widget.project.projectFilePath);
@@ -115,8 +121,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       ref.read(editorProvider.notifier).setImage(image);
     } catch (e) {
       debugPrint('Error loading image: \$e');
+      if (mounted) setState(() {
+        _errorMessage = 'Failed to load image: \${e.toString()}';
+        _isLoading = false;
+      });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted && _errorMessage == null) setState(() => _isLoading = false);
     }
   }
 
@@ -205,11 +215,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     if (editorState.activeTool == EditorTool.crop && editorState.image != null)
                       CropTool(
                         imageSize: Size(editorState.image!.width.toDouble(), editorState.image!.height.toDouble()),
-                        onCropApplied: (rect) async {
+                        onCropApplied: (rect, rotation) async {
                           setState(() => _isLoading = true);
                           ref.read(editorProvider.notifier).setActiveTool(EditorTool.none);
                           try {
-                            final cropped = await ImageProcessingService.cropImage(editorState.image!, rect);
+                            final cropped = await ImageProcessingService.cropImage(editorState.image!, rect, rotationDegrees: rotation);
                             final layerId = ref.read(activeLayerIdProvider);
                             if (layerId != null) {
                               ref.read(imageCacheProvider.notifier).cacheImage(layerId, cropped);
@@ -276,6 +286,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       const TextToolOverlay(),
                     if (editorState.activeTool == EditorTool.transform)
                       const TransformToolOverlay(),
+                    if (editorState.activeTool == EditorTool.select)
+                      const SelectionToolOverlay(),
                   ],
                   Consumer(
                     builder: (context, ref, _) {
@@ -368,6 +380,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         return const HealPanel();
       case EditorTool.curves:
         return const CurvesPanel();
+      case EditorTool.select:
+        return const SelectionPanel();
       default:
         return const Center(
           child: Text(
