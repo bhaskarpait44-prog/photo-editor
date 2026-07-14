@@ -9,7 +9,7 @@ class SelectionPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(selectionToolModeProvider);
-    final hasSelection = ref.watch(selectionProvider) != null;
+    final hasSelection = ref.watch(selectionProvider).selectionPath != null;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -50,7 +50,7 @@ class SelectionPanel extends ConsumerWidget {
             icon: Icons.invert_colors,
             onTap: () {
               // Invert: create rect of full canvas, subtract current selection
-              final current = ref.read(selectionProvider);
+              final current = ref.read(selectionProvider).selectionPath;
               if (current == null) return;
               final full = Path()..addRect(const Rect.fromLTWH(0, 0, 10000, 10000));
               final inverted = Path.combine(PathOperation.difference, full, current);

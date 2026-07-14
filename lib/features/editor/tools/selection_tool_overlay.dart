@@ -21,7 +21,7 @@ class _SelectionToolOverlayState extends ConsumerState<SelectionToolOverlay> {
   @override
   Widget build(BuildContext context) {
     final mode = ref.watch(selectionToolModeProvider);
-    final selectionPath = ref.watch(selectionProvider);
+    final selectionPath = ref.watch(selectionProvider).selectionPath;
 
     return GestureDetector(
       onPanStart: (d) {
